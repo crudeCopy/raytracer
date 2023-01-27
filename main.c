@@ -2,17 +2,19 @@
  * for testing really */
 
 #include <stdio.h>
-#include "vector.h"
-#include "point.h"
+#include "scene.h"
 
 int main () {
-	vector_t u = { 1.0, 2.0, 2.0 },
-	 	 v = { -2.0, -1.0, 2.0 },
-	       	 w;
+        scene_t scene;
+        char *filename;
 
-	vec_cross (&w, &u, &v);
+        filename = "input_test1";
 
-	printf("cross: (%f, %f, %f)\ndot: %f\nangle between: %f\n", w.x, w.y, w.z, vec_dot (&u, &v), vec_angle_between (&u, &v));
+        scene_from_file (&scene, filename);
+
+        printf ("FINISHED READING SCENE");    
+
+        scene_destroy (&scene);
 
 	return 0;
 }
