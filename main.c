@@ -10,9 +10,9 @@ int main () {
 
         filename = "input_test1";
 
-        scene_from_file (&scene, filename);
-
-        printf ("FINISHED READING SCENE");    
+        if (scene_from_file (&scene, filename) == 1) {
+            printf ("FINISHED READING SCENE\n");    
+        }
 
         scene_destroy (&scene);
 

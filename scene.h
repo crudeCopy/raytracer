@@ -20,7 +20,7 @@ const static unsigned MAX_OBJECTS = 10,
  *    from input file -> view_orig, view_dir, up_dir, fov_h, objects, object_count, 
  *                       img_width, img_height, projection_type, bkg_color, mtl_colors
  *
- *    calculated -> ul, ur, ll, lr, u, v, n, fov_v
+ *    calculated -> win_width, win_height, aspect, fov_v, ul, ur, ll, lr, dw, dh, u, v, n
 */
 typedef struct {
     point_t view_orig,      /* center of projection */
@@ -31,9 +31,13 @@ typedef struct {
              u, v,     /* vecs orthogonal to viewing window plane */
              n;        /* vec normal to viewing window plane; maybe unnecessary? just -1*view_dir */
 
-    float fov_h, /* horizontal field of view; to be supplied */
-          fov_v, /* vertical field of view; to be calculated */
-          d;     /* distance along view_dir between view_orig and center point of viewing window; arbitrary */
+    float win_width,  /* width of the viewing window */
+          win_height, /* height of the viewing window*/
+          aspect,     /* aspect ratio */
+          fov_h,      /* horizontal field of view; to be supplied */
+          fov_v,      /* vertical field of view; to be calculated */
+          dw, dh,     /* world coord distance between one ray and the next */
+          d;          /* distance along view_dir between view_orig and center point of viewing window; arbitrary */
 
     object_t *objects; /* set of given objects to include, holds up to 10 */
 

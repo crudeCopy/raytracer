@@ -10,6 +10,9 @@
 typedef struct { float x, y, z; } point_t;
 
 /* calculates the vector from point a to point b and stores to dest */
-int vec_from_to (vector_t *dest, point_t *a, point_t *b);
+void vec_from_to (vector_t *dest, point_t *a, point_t *b);
+
+/* calculates the point given by point p + vector v and stores to dest */
+void point_plus_vec (point_t *dest, point_t *p, vector_t *v);
 
 #endif /* POINT_H */
