@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <float.h>
 #include "scene.h"
 
 /* read scene info from input file located at file_path into scene */
@@ -28,10 +29,11 @@ int scene_from_file (scene_t *scene, char *file_path) {
              has_projection = 0;
 
     /* variables for math after reading */
-    point_t win_center;
+    point_t win_center,
+            new_end;
     vector_t view_orig_to_win,
-             center_to_corner;
-    float half_height, half_width;
+             half_width_u,
+             half_height_v;
 
     /* set object count to 0 */
     scene->object_count = 0;
@@ -93,14 +95,14 @@ int scene_from_file (scene_t *scene, char *file_path) {
         }
         else if (strcmp (key, "mtlcolor") == 0) { /* mtlcolor */
             /* check if max number of colors are already loaded */
-            if (current_mtl_color >= MAX_MTL_COLORS) {
+            if (current_mtl_color >= MAX_MTL_COLORS - 1) {
                 fprintf (stderr, "too many colors loaded, read fail\n");
                 return 0;
             }
 
             fscanf (file, "%f %f %f", &f1, &f2, &f3);
-            current_mtl_color++;
             scene->mtl_colors [current_mtl_color] = (color_t) {f1, f2, f3};
+            current_mtl_color++;
 
             has_mtlcolors = 1;
         }
@@ -146,11 +148,13 @@ int scene_from_file (scene_t *scene, char *file_path) {
     /* close file */
     fclose (file);
 
+
     /* now that input has been gotten, check if all necessary values are present */
     if ((has_eye + has_viewdir + has_hfov + has_imsize) != 4) {
-        fprintf (stderr, "scene_from_file () read from an input file with one or more missing essential value");
+        fprintf (stderr, "scene_from_file () read from an input file with one or more missing essential value\n");
         return 0;
     }
+
 
     /* prompt the user if they REALLY want to render an image with no objects */
     if (has_objects == 0) {
@@ -162,44 +166,68 @@ int scene_from_file (scene_t *scene, char *file_path) {
         if (go_on != 'y') return 0;
     }
 
+
     /* setup default values if necessary */
-    if (has_updir == 0) scene->up_dir = (vector_t) {0, 1, 0};            /* updir automatically "straight-on" or "no-roll" */
+    if (has_updir == 0) scene->up_dir = (vector_t) {0.0, 1.0, 0.0};      /* updir automatically "straight-on" or "no-roll" */
     if (has_bkgcolor == 0) scene->bkg_color = (color_t) {0.0, 0.0, 0.0}; /* bkgcolor automatically black */
     if (has_projection == 0) scene->projection_type = 0;                 /* projection automatically perspective */    
 
+    
     /* extrapolate unknowns from input known values */
-    scene->d = 1;
-    scene->aspect = scene->img_width / scene->img_height;
 
-    scene->win_width = 2 * scene->d * tan (0.5 * scene->fov_h);         /* win_width */
+    scene->d = 2.0;
+    scene->aspect = ((float) scene->img_width) / ((float) scene->img_height);
+    
+    scene->win_width = 2.0 * scene->d * tan (0.5 * (scene->fov_h * (M_PI/180.0)));         /* win_width */
     scene->win_height = scene->win_width / scene->aspect; /* win_height */
-    scene->fov_v = 2 * atan (scene->win_height / (2 * scene->d));       /* fov_v */
+    /* TODO is fov_v needed? scene->fov_v = 2.0 * atan (scene->win_height / (2.0 * scene->d)) * (180.0/M_PI);*/ /* fov_v */
 
-    vec_scale (&view_orig_to_win, scene->d);
-    point_plus_vec (&win_center, &(scene->view_orig), &view_orig_to_win); /* win_center will help for corners */
 
-    half_width = scene->win_width / 2;
-    half_height = scene->win_height / 2; /* for corners */
-
-    center_to_corner = (vector_t) {-half_width, half_height, 0.0};
-    point_plus_vec (&(scene->ul), &win_center, &center_to_corner); /* ul */
-
-    center_to_corner = (vector_t) {half_width, half_height, 0.0};
-    point_plus_vec (&(scene->ur), &win_center, &center_to_corner); /* ur */
-
-    center_to_corner = (vector_t) {-half_width, -half_height, 0.0};
-    point_plus_vec (&(scene->ll), &win_center, &center_to_corner); /* ll */
-
-    center_to_corner = (vector_t) {half_width, -half_height, 0.0};
-    point_plus_vec (&(scene->lr), &win_center, &center_to_corner); /* lr */
-
-    scene->dw = scene->win_width / (scene->img_width - 1); /* dw */
-    scene->dh = scene->dw / scene->aspect;                 /* dh */
+    /* VECTOR TIME */
 
     vec_cross (&(scene->u), &(scene->view_dir), &(scene->up_dir));
     vec_normalize (&(scene->u)); /* u, normalized */
 
-    vec_cross (&(scene->v), &(scene->n), &(scene->u)); /*v, cross of two orthogonal unit vecs, so already normal */
+    vec_cross (&(scene->v), &(scene->u), &(scene->view_dir)); /* v, cross of two orthog. unit vecs, already normal */
+
+
+    /* CORNER TIME */
+
+    view_orig_to_win = scene->view_dir;
+    vec_scale (&view_orig_to_win, scene->d); 
+    point_plus_vec (&win_center, &(scene->view_orig), &view_orig_to_win); /* win_center = view_origin + d*view_dir */
+  
+    half_width_u = scene->u;
+    vec_scale (&half_width_u, -(scene->win_width / 2.0)); /* -(w/2)*u */
+    half_height_v = scene->v;
+    vec_scale (&half_height_v, scene->win_height / 2.0);  /* +(h/2)*v */
+    
+    point_plus_vec (&(scene->ul), &win_center, &half_width_u);
+    point_plus_vec (&(scene->ul), &(scene->ul), &half_height_v); /* ul */
+
+    vec_scale (&half_width_u, -1.0); /* +(w/2)*u */
+    point_plus_vec (&(scene->ur), &win_center, &half_width_u);
+    point_plus_vec (&(scene->ur), &(scene->ur), &half_height_v); /* ur */
+
+    vec_scale (&half_width_u, -1.0); /* -(w/2)*u */
+    vec_scale (&half_height_v, -1.0); /* -(h/2)*v */
+    point_plus_vec (&(scene->ll), &win_center, &half_width_u);
+    point_plus_vec (&(scene->ll), &(scene->ll), &half_height_v); /* ll */
+
+    vec_scale (&half_width_u, -1.0); /* +(w/2)*u */
+    point_plus_vec (&(scene->lr), &win_center, &half_width_u);
+    point_plus_vec (&(scene->lr), &(scene->lr), &half_height_v); /* lr */
+
+
+    /* DELTAS */
+
+    vec_from_to (&(scene->dw), &(scene->ul), &(scene->ur));
+    vec_from_to (&(scene->dh), &(scene->ul), &(scene->ll));
+    vec_scale (&(scene->dw), 1.0 / ((float) scene->img_width - 1.0));
+    vec_scale (&(scene->dh), 1.0 / ((float) scene->img_height - 1.0));
+    point_plus_vec (&new_end, &(scene->ur), &(scene->dw));
+    vec_from_to (&(scene->ret), &new_end, &(scene->ul));
+
 
     return 1;
 }
@@ -214,4 +242,82 @@ void scene_destroy (scene_t *scene) {
     /* destroy objects and mtl_colors */
     free (scene->objects);
     free (scene->mtl_colors);
+}
+
+/* trace ray, similar to specification */
+color_t trace_ray (ray_t *ray, scene_t *scene) {
+    unsigned i; //obj_type;
+    float b, c,
+          t_add, t_sub,
+          t_add_dist, t_sub_dist, /* variables used in calculation of ray intersection */
+          discriminant,
+          closest_distance = FLT_MAX; /* arbitrarily large to start with */
+    point_t point_add, point_sub;
+    object_t curr_obj;
+    color_t result_color = scene->bkg_color; /* bkg by default */
+
+    /* check for collision with each object UPDATE FOR CYL */
+    for (i = 0; i < scene->object_count; i++) {
+        curr_obj = scene->objects[i];
+
+        /* calculate B and C of the intersection model; A is already known to be 1 */
+
+        b = 2.0 * (ray->dir.x * (ray->orig.x - curr_obj.args[0]) +
+                 ray->dir.y * (ray->orig.y - curr_obj.args[1]) +
+                 ray->dir.z * (ray->orig.z - curr_obj.args[2]));
+        c = pow (ray->orig.x - curr_obj.args[0], 2.0) + pow (ray->orig.y - curr_obj.args[1], 2.0) +
+            pow (ray->orig.z - curr_obj.args[2], 2.0) - pow (curr_obj.args[3], 2.0);
+
+        /* calculate discriminant, determine if need to go on */
+        discriminant = pow (b, 2.0) - 4.0 * c;
+
+        if (discriminant > 0) { /* 2 solutions */
+            t_add = (-b + sqrt (discriminant)) / 2.0;
+            t_sub = (-b - sqrt (discriminant)) / 2.0;
+
+            point_at_t (&point_add, ray, t_add);
+            point_at_t (&point_add, ray, t_sub);
+
+            t_add_dist = point_distance (&(ray->orig), &point_add);
+            t_sub_dist = point_distance (&(ray->orig), &point_sub);
+
+            /* disqualify if not in front of view */
+            if (t_add_dist <= 0) t_add_dist = FLT_MAX;
+            if (t_add_dist <= 0) t_add_dist = FLT_MAX;
+
+            /* decide which is closest 
+             * note: in a situation where previous closest_distance is the same as the closer of
+             * these two new ones, the original closest_distance will remain */
+            if (t_add_dist <= t_sub_dist && t_add_dist < closest_distance)
+                closest_distance = t_add_dist;
+            else if (t_sub_dist < t_add_dist && t_sub_dist < closest_distance)
+                closest_distance = t_sub_dist;
+            else continue; /* skips assigning result_color */
+
+            result_color = shade_ray (&curr_obj);
+        }
+        else if (discriminant == 0) { /* 1 solution */
+            t_add = -b / 2.0;
+
+            point_at_t (&point_add, ray, t_add);
+
+            t_add_dist = point_distance (&(ray->orig), &point_add);
+
+            /* if this point is the new least distance along this ray, then replace it
+             * and make result color the color of this object, otherwise move on */
+            if (t_add_dist < closest_distance) {
+                result_color = shade_ray (&curr_obj);
+                closest_distance = t_add_dist;
+            }
+        }
+    }
+
+    /* return result */
+    return result_color;
+}
+
+/* shade ray, similar to spec */
+color_t shade_ray (object_t *obj) {
+    /* for now, just return its color */
+    return obj->color;
 }

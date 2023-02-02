@@ -4,12 +4,16 @@
 #ifndef RAY_H
 #define RAY_H
 
-/* ray struct 
- * i thought about using a point_t and a vector_t to make up a ray
- * but that sounds like way too much to type out regularly */
+#include "point.h"
+#include "vector.h"
+
+/* ray struct using a point_t and a vector_t to make up a ray */
 typedef struct {
-    float x, y, z,
-          dx, dy, dz;
+    point_t orig;
+    vector_t dir;
 } ray_t;
+
+/* calculates point at given t along given ray, stores to dest */
+void point_at_t (point_t *dest, ray_t *ray, float t);
 
 #endif /* RAY_H */

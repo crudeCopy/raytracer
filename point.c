@@ -6,9 +6,9 @@
 
 /* returns the vector from point a to point b and stores to dest */
 void vec_from_to (vector_t *dest, point_t *a, point_t *b) {
-	dest->x = b->x - a->x;
-	dest->y = b->y - a->y;
-	dest->z = b->z - a->z;
+    dest->x = b->x - a->x;
+    dest->y = b->y - a->y;
+    dest->z = b->z - a->z;
 }
 
 /* calculates the point given by point p + vector v and stores to dest */
@@ -16,4 +16,11 @@ void point_plus_vec (point_t *dest, point_t *p, vector_t *v) {
     dest->x = p->x + v->x;
     dest->y = p->y + v->y;
     dest->z = p->z + v->z;
+}
+
+/* calculates the distance between point a and point b */
+float point_distance (point_t *a, point_t *b) {
+    vector_t v;
+    vec_from_to (&v, a, b);
+    return vec_length (&v);
 }

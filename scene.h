@@ -6,6 +6,7 @@
 
 #include "point.h"
 #include "vector.h"
+#include "ray.h"
 #include "object.h"
 #include "color.h"
 
@@ -29,14 +30,15 @@ typedef struct {
     vector_t view_dir, /* viewing direction */
              up_dir,   /* global "up" direction */
              u, v,     /* vecs orthogonal to viewing window plane */
-             n;        /* vec normal to viewing window plane; maybe unnecessary? just -1*view_dir */
+             n,        /* vec normal to viewing window plane; maybe unnecessary? just -1*view_dir */
+             dw, dh,   /* translations from one window location to next */
+             ret;      /* translations from end of window row to beginning */
 
     float win_width,  /* width of the viewing window */
           win_height, /* height of the viewing window*/
           aspect,     /* aspect ratio */
           fov_h,      /* horizontal field of view; to be supplied */
-          fov_v,      /* vertical field of view; to be calculated */
-          dw, dh,     /* world coord distance between one ray and the next */
+          /*fov_v,*/  /* vertical field of view; to be calculated */
           d;          /* distance along view_dir between view_orig and center point of viewing window; arbitrary */
 
     object_t *objects; /* set of given objects to include, holds up to 10 */
@@ -56,5 +58,11 @@ int scene_from_file (scene_t *scene, char *file_path);
 
 /* destroy scene object */
 void scene_destroy (scene_t *scene);
+
+/* trace ray, similar to specification */
+color_t trace_ray (ray_t *ray, scene_t *scene);
+
+/* shade ray, similar to spec */
+color_t shade_ray (object_t *obj);
 
 #endif /* SCENE_H */
