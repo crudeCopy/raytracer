@@ -1,0 +1,9 @@
+soon future
+1 manually lint code better (it's gross)
+2 put all the file stuff into one source/header duo (i/o)
+
+faraway future
+1 reimpliment
+    - Rust
+    - OCaml/other functional
+

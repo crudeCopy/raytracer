@@ -5,17 +5,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "object.h"
-
+#if 0
 /* initializes an object_t of type t with color input_color and
  * parameters from input_args; stores to dest; 1 = success, 0 = fail */
-int object_init (object_t *dest, unsigned t, color_t *input_color, char *input_args) {
+int object_init (object_t *dest, unsigned t, mtl_color_t *input_color, char *input_args) {
     unsigned i;
     char *arg_tokenized;
 
 
     /* set type and color */
     dest->type = t;
-    dest->color = (color_t) { input_color->r, input_color->g, input_color->b };
+    dest->color = (mtl_color_t) {
+        (color_t) {input_color->od.r, input_color->od.g, input_color->od.b},  
+        (color_t) {input_color->os.r, input_color->os.g, input_color->os.b},
+        input_color->ka, input_color->kd, input_color->ks, input_color->n
+    };
 
 
     /* check object type is valid TODO: update */
@@ -49,6 +53,9 @@ int object_init (object_t *dest, unsigned t, color_t *input_color, char *input_a
     }
 
 
+    /* set texture to null by default */
+    dest->texture = NULL;
+
     return 0;
 }
 
@@ -57,3 +64,4 @@ int object_init (object_t *dest, unsigned t, color_t *input_color, char *input_a
 void object_destroy (object_t *obj) {
     free (obj->args);
 }
+#endif

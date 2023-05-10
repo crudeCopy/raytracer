@@ -1,0 +1,49 @@
+eye 3 3 3
+viewdir -1 -1 -1
+updir 0 1 0
+hfov 90
+imsize 512 512
+bkgcolor 0.1 0.1 0.1
+light 3 3 3 1 1 1 1
+
+# rear face
+v 1 1 1
+v 1 -1 1
+v -1 -1 1
+v -1 1 1
+
+# fore face
+v 1 1 -1
+v 1 -1 -1
+v -1 -1 -1
+v -1 1 -1
+
+# rear
+mtlcolor 1 0 0 1 1 1 0.1 0.4 0.4 20
+f 1 2 4
+f 3 4 2
+
+# left
+mtlcolor 0 1 0 1 1 1 0.1 0.4 0.4 20
+f 4 3 8
+f 7 8 3
+
+# bttm
+mtlcolor 0 0 1 1 1 1 0.1 0.4 0.4 20
+f 2 6 3
+f 7 3 6
+
+# rght
+mtlcolor 0 1 1 1 1 1 0.1 0.4 0.4 20
+f 5 6 1
+f 2 1 6
+
+# topp
+mtlcolor 1 0 1 1 1 1 0.1 0.4 0.4 20
+f 1 4 8
+f 5 8 4
+
+# fore
+mtlcolor 1 1 0 1 1 1 0.1 0.4 0.4 20
+f 5 8 6
+f 7 6 8

@@ -1,0 +1,36 @@
+eye 0 0 0
+viewdir 0 0 -1
+updir 0 1 0
+hfov 90
+imsize 500 600
+bkgcolor 0.25 0.25 0.25
+
+projection perspective
+
+light 1 0 -1 0 1 1 1
+
+
+mtlcolor 0.5 0 0 0.5 0.5 0.5 0.3 0.3 0.4 10
+sphere -1 2 -2 1
+
+mtlcolor 0.5 0.25 0 0.5 0.5 0.5 0.3 0.3 0.4 10
+sphere 0 2 -4 1
+
+mtlcolor 0.5 0.5 0 0.5 0.5 0.5 0.3 0.3 0.4 10
+sphere 1 2 -6 1
+
+mtlcolor 0 0.5 0 0.5 0.5 0.5 0.3 0.3 0.4 10
+sphere 2 2 -8 1
+
+
+mtlcolor 0 0 0.5 0.5 0.5 0.5 0.3 0.3 0.4 10
+sphere 1 -2 -2 1
+
+mtlcolor 0.25 0 0.5 0.5 0.5 0.5 0.3 0.3 0.4 10
+sphere 0 -2 -4 1
+
+mtlcolor 0.5 0 0.5 0.5 0.5 0.5 0.3 0.3 0.4 10
+sphere -1 -2 -6 1
+
+mtlcolor 0 0.5 0.5 0.5 0.5 0.5 0.3 0.3 0.4 10
+sphere -2 -2 -8 1

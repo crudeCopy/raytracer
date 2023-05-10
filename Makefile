@@ -1,8 +1,8 @@
-GCC = gcc -Wall -Werror
+NAME = raytracer1d
+GCC = gcc -Wall -Werror -g
 
-all: main.c point.c vector.c color.c object.c scene.c
-	$(GCC) -lm main.c scene.c object.c object_arg.c color.c vector.c point.c -o cray
-
+all: main.c r3math.c color.c object.c triangle.c scene.c cray.c
+	$(GCC) -lm -o $(NAME) main.c r3math.c color.c object.c triangle.c scene.c cray.c
 
 clean:
-	rm -f *.o cray
+	rm -f *.o $(NAME) input/*.ppm
